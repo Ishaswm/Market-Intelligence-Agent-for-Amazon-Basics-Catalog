@@ -3,7 +3,7 @@
 import React from 'react';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { findProductOpportunitiesAction } from '@/app/actions';
+import { summarizeMarketAction } from '@/app/actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -12,14 +12,22 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Lightbulb, Search } from 'lucide-react';
 import { ReportGenerator } from '../report/ReportGenerator';
+import type { SummarizeMarketDataOutput } from '@/ai/flows/summarize-market-data';
 import type { FindProductOpportunitiesOutput } from '@/ai/flows/find-product-opportunities';
 import { Header } from '../common/Header';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
+type InitialState = FindProductOpportunitiesOutput & SummarizeMarketDataOutput & { error?: string };
 
-function OpportunityFinder({ onOpportunitiesFound, onLoading }: { onOpportunitiesFound: (data: FindProductOpportunitiesOutput) => void, onLoading: (loading: boolean) => void }) {
-    const [state, formAction] = useActionState(findProductOpportunitiesAction, {});
+function OpportunityFinder({ onOpportunitiesFound, onLoading }: { onOpportunitiesFound: (data: InitialState) => void, onLoading: (loading: boolean) => void }) {
+    const initialState: InitialState = {
+        productSuggestions: [],
+        analysisSummary: '',
+        marketTrends: '',
+        customerPainPoints: '',
+    };
+    const [state, formAction] = useActionState(summarizeMarketAction, initialState);
     const { pending } = useFormStatus();
 
     React.useEffect(() => {
@@ -27,8 +35,8 @@ function OpportunityFinder({ onOpportunitiesFound, onLoading }: { onOpportunitie
     }, [pending, onLoading]);
     
     React.useEffect(() => {
-        if (state?.productSuggestions) {
-            onOpportunitiesFound(state as FindProductOpportunitiesOutput);
+        if (state?.productSuggestions && state.productSuggestions.length > 0) {
+            onOpportunitiesFound(state as InitialState);
         }
     }, [state, onOpportunitiesFound]);
     
@@ -139,12 +147,12 @@ function OpportunityResults({ opportunities, onSelectProduct, onReset }: {
 
 export function ProductResearch() {
     const [step, setStep] = React.useState(1);
-    const [opportunityData, setOpportunityData] = React.useState<FindProductOpportunitiesOutput | null>(null);
+    const [researchData, setResearchData] = React.useState<InitialState | null>(null);
     const [selectedProduct, setSelectedProduct] = React.useState<string | null>(null);
     const [isLoadingOpportunities, setIsLoadingOpportunities] = React.useState(false);
 
-    const handleOpportunitiesFound = (data: FindProductOpportunitiesOutput) => {
-        setOpportunityData(data);
+    const handleOpportunitiesFound = (data: InitialState) => {
+        setResearchData(data);
         setStep(2);
         setIsLoadingOpportunities(false);
     };
@@ -156,7 +164,7 @@ export function ProductResearch() {
 
     const handleReset = () => {
         setStep(1);
-        setOpportunityData(null);
+        setResearchData(null);
         setSelectedProduct(null);
         setIsLoadingOpportunities(false);
     }
@@ -195,16 +203,16 @@ export function ProductResearch() {
             case 1:
                 return <OpportunityFinder onOpportunitiesFound={handleOpportunitiesFound} onLoading={setIsLoadingOpportunities} />;
             case 2:
-                if (opportunityData) {
+                if (researchData) {
                     return <OpportunityResults
-                        opportunities={opportunityData}
+                        opportunities={researchData}
                         onSelectProduct={handleSelectProduct}
                         onReset={handleReset}
                     />;
                 }
                 break;
             case 3:
-                 if (selectedProduct && opportunityData) {
+                 if (selectedProduct && researchData) {
                     return (
                         <>
                              <Header
@@ -214,8 +222,8 @@ export function ProductResearch() {
                             />
                             <ReportGenerator
                                 productIdea={selectedProduct}
-                                customerPainPoints={opportunityData.analysisSummary}
-                                marketTrends={opportunityData.analysisSummary}
+                                customerPainPoints={researchData.customerPainPoints}
+                                marketTrends={researchData.marketTrends}
                             />
                         </>
                     )

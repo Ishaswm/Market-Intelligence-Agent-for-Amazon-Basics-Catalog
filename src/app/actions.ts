@@ -4,6 +4,8 @@ import { generateBusinessReport } from "@/ai/flows/generate-business-report";
 import type { GenerateBusinessReportOutput } from "@/ai/flows/generate-business-report";
 import { findProductOpportunities } from "@/ai/flows/find-product-opportunities";
 import type { FindProductOpportunitiesOutput } from "@/ai/flows/find-product-opportunities";
+import { summarizeMarketData } from "@/ai/flows/summarize-market-data";
+import type { SummarizeMarketDataOutput } from "@/ai/flows/summarize-market-data";
 import { z } from "zod";
 
 
@@ -44,7 +46,7 @@ export async function generateReportAction(
 }
 
 
-interface FindProductOpportunitiesState extends Partial<FindProductOpportunitiesOutput> {
+interface FindProductOpportunitiesState extends FindProductOpportunitiesOutput {
     error?: string;
 }
 
@@ -72,5 +74,44 @@ export async function findProductOpportunitiesAction(
     } catch (error) {
         console.error(error);
         return { error: "Failed to find product opportunities. Please try again." };
+    }
+}
+
+interface SummarizeMarketState extends SummarizeMarketDataOutput {
+    error?: string;
+}
+
+export async function summarizeMarketAction(
+    prevState: SummarizeMarketState,
+    formData: FormData
+): Promise<SummarizeMarketState> {
+    const validatedFields = findOpportunitiesSchema.safeParse({
+        productCategory: formData.get('productCategory'),
+    });
+        if (!validatedFields.success) {
+        return {
+            error: validatedFields.error.errors.map((e) => e.message).join(', '),
+            marketTrends: '',
+            customerPainPoints: '',
+        };
+    }
+    try {
+        const [opportunities, marketSummary] = await Promise.all([
+            findProductOpportunities(validatedFields.data),
+            summarizeMarketData(validatedFields.data),
+        ]);
+
+        return {
+            ...opportunities,
+            ...marketSummary,
+        };
+
+    } catch (error) {
+        console.error(error);
+        return { 
+            error: "Failed to analyze market data. Please try again.",
+            marketTrends: '',
+            customerPainPoints: '',
+        };
     }
 }
