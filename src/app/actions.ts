@@ -32,7 +32,7 @@ export async function generateReportAction(
 
     if (!validatedFields.success) {
         return {
-            error: validatedFields.error.errors.map((e) => e.message).join(', '),
+            error: "Invalid data provided for report generation. Please try again.",
         };
     }
 
@@ -41,7 +41,7 @@ export async function generateReportAction(
         return { report: result };
     } catch (error) {
         console.error(error);
-        return { error: "Failed to generate report. Please try again." };
+        return { error: "The AI failed to generate the report. This can happen with complex topics. Please try again with a different product or category." };
     }
 }
 
@@ -73,7 +73,7 @@ export async function findProductOpportunitiesAction(
         return result;
     } catch (error) {
         console.error(error);
-        return { error: "Failed to find product opportunities. Please try again." };
+        return { error: "Failed to find product opportunities. The AI may be unable to analyze this category. Please try a different one." };
     }
 }
 
@@ -112,7 +112,7 @@ export async function summarizeMarketAction(
     } catch (error) {
         console.error(error);
         return { 
-            error: "Failed to analyze market data. Please try again.",
+            error: "Failed to analyze market data. The AI may be unable to process this category. Please try a different one.",
             marketTrends: '',
             customerPainPoints: '',
             analysisSummary: '',
