@@ -52,6 +52,7 @@ const prompt = ai.definePrompt({
   name: 'generateBusinessReportPrompt',
   input: {schema: GenerateBusinessReportInputSchema},
   output: {schema: GenerateBusinessReportOutputSchema},
+  model: 'googleai/gemini-1.5-flash',
   prompt: `You are a senior product manager at Amazon Basics. Your task is to create a comprehensive business report for a potential new product based on market analysis.
 
 Product Idea: {{{productIdea}}}
