@@ -37,13 +37,13 @@ export default function DashboardPage() {
         <MarketTrendChart />
          <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
             <div className="flex flex-col space-y-1.5 p-6">
-                <h3 className="font-headline text-2xl font-semibold leading-none tracking-tight">Generate a New Report</h3>
-                <p className="text-sm text-muted-foreground">Combine sentiment and trend analysis to create a full business case for a new product.</p>
+                <h3 className="font-headline text-2xl font-semibold leading-none tracking-tight">Start New Product Research</h3>
+                <p className="text-sm text-muted-foreground">Combine sentiment and trend analysis to generate product ideas and create a full business case.</p>
             </div>
             <div className="p-6 pt-0">
                 <Link href="/dashboard/opportunities">
                     <Button>
-                        Go to Report Generator
+                        Go to Product Research
                         <ArrowRight className="ml-2" />
                     </Button>
                 </Link>

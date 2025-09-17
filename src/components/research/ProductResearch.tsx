@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Lightbulb } from 'lucide-react';
-import { ReportGenerator } from './ReportGenerator';
+import { ReportGenerator } from '../report/ReportGenerator';
 
 const initialRecommendState = {};
 
@@ -58,9 +58,9 @@ function RecommendationForm({ onRecommendations, customerPainPoints, marketTrend
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline">Step 1: Generate Product Ideas</CardTitle>
+                <CardTitle className="font-headline">Step 1: Analyze Market & Ideate</CardTitle>
                 <CardDescription>
-                    Provide summaries from your sentiment and trend analysis to generate tailored product recommendations.
+                    Provide summaries of customer pain points and market trends to generate tailored product recommendations.
                 </CardDescription>
             </CardHeader>
             <form action={formAction}>
@@ -139,7 +139,7 @@ function RecommendationResults({ recommendations, onSelectProduct, onReset }: {
 }
 
 
-export function ReportGeneratorWrapper() {
+export function ProductResearch() {
     const [step, setStep] = useState(1);
     const [recommendationData, setRecommendationData] = useState<any>(null);
     const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
@@ -184,5 +184,14 @@ export function ReportGeneratorWrapper() {
         />;
     }
     
-    return <div>Loading...</div>;
+    // Fallback to step 1 if state is inconsistent
+    if (step !== 1) {
+        handleReset();
+    }
+
+    return <RecommendationForm 
+        onRecommendations={handleRecommendations} 
+        customerPainPoints={recommendationData?.customerPainPoints || ''}
+        marketTrends={recommendationData?.marketTrends || ''}
+    />;
 }

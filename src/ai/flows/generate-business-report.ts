@@ -25,11 +25,10 @@ export type GenerateBusinessReportInput = z.infer<
 >;
 
 const GenerateBusinessReportOutputSchema = z.object({
-  executiveSummary: z.string().describe('A high-level overview of the business case for the new product.'),
-  targetAudience: z.string().describe('A description of the ideal customer profile for this product.'),
-  featureSuggestions: z.array(z.string()).describe('A list of recommended features for the product based on customer pain points.'),
-  marketingStrategy: z.string().describe('Recommendations for how to market the new product.'),
-  pricingAnalysis: z.string().describe('A suggested retail price and analysis of the pricing strategy.'),
+  financialModeling: z.string().describe('A high-level financial projection, including estimated TAM, potential revenue, and key cost considerations.'),
+  opportunityScoring: z.string().describe('An analysis of the product\'s potential, scoring it on factors like market demand, competition, and alignment with Amazon Basics\' strategy. Provide a final score out of 10.'),
+  competitiveAnalysis: z.string().describe('An overview of the competitive landscape, identifying key competitors and their strengths and weaknesses.'),
+  marketTrends: z.string().describe('A summary of the market trends that support the viability of this product idea.'),
 });
 export type GenerateBusinessReportOutput = z.infer<
   typeof GenerateBusinessReportOutputSchema
@@ -56,11 +55,10 @@ Relevant Market Trends:
 {{{marketTrends}}}
 
 Based on the information above, generate a detailed business report covering the following sections:
-1.  **Executive Summary:** A concise overview of the opportunity and why Amazon Basics should pursue it.
-2.  **Target Audience:** Describe the ideal customer for this product.
-3.  **Feature Suggestions:** List key features that will address the identified customer pain points.
-4.  **Marketing Strategy:** Suggest key channels and messaging for launching this product.
-5.  **Pricing Analysis:** Recommend a competitive retail price and justify it.
+1.  **Financial Modeling:** Provide a high-level financial projection. Include estimated Total Addressable Market (TAM), potential annual revenue, and key cost considerations (manufacturing, marketing, etc.).
+2.  **Opportunity Scoring:** Analyze the product's potential. Score it on market demand, competitive intensity, and strategic alignment with the Amazon Basics brand. Provide a final score out of 10 and a justification.
+3.  **Competitive Analysis:** Briefly summarize the competitive landscape. Who are the main competitors? What are their strengths and weaknesses? How can an Amazon Basics product differentiate itself?
+4.  **Market Trends:** Explain how current market trends support this product idea. Reference the provided trends and any other relevant industry insights.
 
 Please provide the report in the structured format defined by the output schema.`,
 });
