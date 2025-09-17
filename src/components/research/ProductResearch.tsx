@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Lightbulb, Search } from 'lucide-react';
+import { Lightbulb, Search, AlertCircle } from 'lucide-react';
 import { ReportGenerator } from '../report/ReportGenerator';
 import type { SummarizeMarketDataOutput } from '@/ai/flows/summarize-market-data';
 import type { FindProductOpportunitiesOutput } from '@/ai/flows/find-product-opportunities';
@@ -17,27 +17,25 @@ import { Header } from '../common/Header';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
-type InitialState = FindProductOpportunitiesOutput & SummarizeMarketDataOutput & { error?: string };
+type ResearchState = FindProductOpportunitiesOutput & SummarizeMarketDataOutput & { error?: string };
 
-function OpportunityFinder({ onOpportunitiesFound, onLoading }: { onOpportunitiesFound: (data: InitialState) => void, onLoading: (loading: boolean) => void }) {
-    const initialState: InitialState = {
-        productSuggestions: [],
-        analysisSummary: '',
-        marketTrends: '',
-        customerPainPoints: '',
-    };
+const initialState: ResearchState = {
+    productSuggestions: [],
+    analysisSummary: '',
+    marketTrends: '',
+    customerPainPoints: '',
+    error: undefined,
+};
+
+function OpportunityFinder({ onAnalysisComplete }: { onAnalysisComplete: (data: ResearchState) => void }) {
     const [state, formAction, isPending] = useActionState(summarizeMarketAction, initialState);
 
     React.useEffect(() => {
-        onLoading(isPending);
-    }, [isPending, onLoading]);
-    
-    React.useEffect(() => {
-        if (state?.productSuggestions && state.productSuggestions.length > 0 && !isPending) {
-            onOpportunitiesFound(state as InitialState);
+        if (!isPending && (state.productSuggestions?.length > 0 || state.error)) {
+            onAnalysisComplete(state);
         }
-    }, [state, onOpportunitiesFound, isPending]);
-    
+    }, [state, isPending, onAnalysisComplete]);
+
     return (
         <Card>
             <CardHeader>
@@ -59,7 +57,8 @@ function OpportunityFinder({ onOpportunitiesFound, onLoading }: { onOpportunitie
                     </div>
                     {state?.error && !isPending && (
                         <Alert variant="destructive">
-                            <AlertTitle>Error</AlertTitle>
+                             <AlertCircle className="h-4 w-4" />
+                            <AlertTitle>Analysis Failed</AlertTitle>
                             <AlertDescription>{state.error}</AlertDescription>
                         </Alert>
                     )}
@@ -81,19 +80,22 @@ function OpportunityFinderSkeleton() {
             <CardHeader>
                 <CardTitle className="font-headline">Analyzing Market...</CardTitle>
                 <CardDescription>
-                    The AI is scouting the market for trends and customer pain points.
+                    The AI is scouting the market for trends and customer pain points. This may take a moment.
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="space-y-4">
-                    <Skeleton className="h-8 w-1/3" />
+                <div className="space-y-6">
                     <div className="space-y-2">
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-4/5" />
+                        <Skeleton className="h-4 w-1/4" />
+                        <Skeleton className="h-10 w-full" />
                     </div>
-                    <div className="space-y-2">
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-3/4" />
+                     <div className="space-y-2">
+                        <Skeleton className="h-8 w-1/3" />
+                    </div>
+                    <div className="space-y-4">
+                        <Skeleton className="h-20 w-full" />
+                        <Skeleton className="h-20 w-full" />
+                        <Skeleton className="h-20 w-full" />
                     </div>
                 </div>
             </CardContent>
@@ -145,14 +147,18 @@ function OpportunityResults({ opportunities, onSelectProduct, onReset }: {
 
 export function ProductResearch() {
     const [step, setStep] = React.useState(1);
-    const [researchData, setResearchData] = React.useState<InitialState | null>(null);
+    const [researchData, setResearchData] = React.useState<ResearchState | null>(null);
     const [selectedProduct, setSelectedProduct] = React.useState<string | null>(null);
-    const [isLoadingOpportunities, setIsLoadingOpportunities] = React.useState(false);
+    const [isLoading, setIsLoading] = React.useState(false);
 
-    const handleOpportunitiesFound = (data: InitialState) => {
+    const handleAnalysisComplete = (data: ResearchState) => {
+        setIsLoading(false);
+        if (data.error) {
+            // Error is handled by the OpportunityFinder component's alert
+            return;
+        }
         setResearchData(data);
         setStep(2);
-        setIsLoadingOpportunities(false);
     };
 
     const handleSelectProduct = (productName: string) => {
@@ -164,23 +170,25 @@ export function ProductResearch() {
         setStep(1);
         setResearchData(null);
         setSelectedProduct(null);
-        setIsLoadingOpportunities(false);
+        setIsLoading(false);
     }
     
     const downloadReport = async () => {
         const reportElement = document.getElementById('report-content');
         if (!reportElement) return;
         
-        const originalBg = document.body.style.backgroundColor;
-        document.body.style.backgroundColor = 'white';
+        // Temporarily set a white background for capture if the user is in dark mode
+        const originalBg = document.documentElement.style.backgroundColor;
+        document.documentElement.style.backgroundColor = 'white';
 
         const canvas = await html2canvas(reportElement, {
             scale: 2,
             useCORS: true, 
-            backgroundColor: '#ffffff',
+            backgroundColor: '#ffffff', // Ensure canvas background is white
         });
         
-        document.body.style.backgroundColor = originalBg;
+        // Restore original background color
+        document.documentElement.style.backgroundColor = originalBg;
 
         const imgData = canvas.toDataURL('image/png');
         const pdf = new jsPDF('p', 'mm', 'a4');
@@ -191,15 +199,17 @@ export function ProductResearch() {
         pdf.save(`${selectedProduct?.replace(/\s+/g, '-')}-business-report.pdf`);
     };
 
-
     const renderStep = () => {
-        if (isLoadingOpportunities) {
+        if (isLoading) {
             return <OpportunityFinderSkeleton />;
         }
 
         switch (step) {
             case 1:
-                return <OpportunityFinder onOpportunitiesFound={handleOpportunitiesFound} onLoading={setIsLoadingOpportunities} />;
+                return <OpportunityFinder onAnalysisComplete={(data) => {
+                    setIsLoading(true);
+                    handleAnalysisComplete(data);
+                }} />;
             case 2:
                 if (researchData) {
                     return <OpportunityResults
@@ -208,7 +218,10 @@ export function ProductResearch() {
                         onReset={handleReset}
                     />;
                 }
-                break;
+                // If we are in step 2 but have no data, go back to step 1
+                setStep(1);
+                return <OpportunityFinder onAnalysisComplete={handleAnalysisComplete} />;
+
             case 3:
                  if (selectedProduct && researchData) {
                     return (
@@ -223,14 +236,19 @@ export function ProductResearch() {
                                 customerPainPoints={researchData.customerPainPoints}
                                 marketTrends={researchData.marketTrends}
                             />
+                             <div className="mt-8 text-center">
+                                <Button variant="outline" onClick={handleReset}>Start a New Search</Button>
+                            </div>
                         </>
                     )
                 }
-                break;
+                // If we are in step 3 but something is missing, go back to step 1
+                setStep(1);
+                return <OpportunityFinder onAnalysisComplete={handleAnalysisComplete} />;
+
+            default:
+                 return <OpportunityFinder onAnalysisComplete={handleAnalysisComplete} />;
         }
-        
-        // Default to step 1 if something goes wrong
-        return <OpportunityFinder onOpportunitiesFound={handleOpportunitiesFound} onLoading={setIsLoadingOpportunities} />;
     };
 
 
