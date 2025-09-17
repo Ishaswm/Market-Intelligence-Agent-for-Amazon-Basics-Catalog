@@ -1,6 +1,7 @@
 'use client'
 
-import { useFormState, useFormStatus } from 'react-dom'
+import { useActionState } from 'react'
+import { useFormStatus } from 'react-dom'
 import { generateReportAction } from '@/app/actions'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -41,7 +42,7 @@ function LoadingSkeleton() {
 }
 
 export function ReportGenerator() {
-  const [state, formAction] = useFormState(generateReportAction, initialState)
+  const [state, formAction] = useActionState(generateReportAction, initialState)
   const { pending } = useFormStatus();
 
   return (

@@ -1,6 +1,7 @@
 'use client'
 
-import { useFormState, useFormStatus } from 'react-dom'
+import { useActionState } from 'react'
+import { useFormStatus } from 'react-dom'
 import { suggestTrendsAction } from '@/app/actions'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -39,7 +40,7 @@ function LoadingSkeleton() {
 }
 
 export function TrendSuggestion() {
-  const [state, formAction] = useFormState(suggestTrendsAction, initialState)
+  const [state, formAction] = useActionState(suggestTrendsAction, initialState)
   const { pending } = useFormStatus()
 
   return (

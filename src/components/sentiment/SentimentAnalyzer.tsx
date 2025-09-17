@@ -1,6 +1,7 @@
 'use client'
 
-import { useFormState, useFormStatus } from 'react-dom'
+import { useActionState } from 'react'
+import { useFormStatus } from 'react-dom'
 import { analyzeSentimentAction } from '@/app/actions'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -33,7 +34,7 @@ function LoadingSkeleton() {
 }
 
 export function SentimentAnalyzer() {
-  const [state, formAction] = useFormState(analyzeSentimentAction, initialState)
+  const [state, formAction] = useActionState(analyzeSentimentAction, initialState)
   const { pending } = useFormStatus()
 
   return (
