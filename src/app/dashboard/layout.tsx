@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { DashboardNav } from '@/components/dashboard-nav'
-import { Warehouse } from 'lucide-react'
+import { Package } from 'lucide-react'
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
@@ -20,7 +20,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <SidebarHeader className="p-4">
           <div className="flex items-center gap-3">
             <Button variant="outline" size="icon" className="size-10 bg-primary text-primary-foreground">
-                <Warehouse className="size-5" />
+                <Package className="size-5" />
             </Button>
             <div className="flex flex-col">
               <h2 className="font-headline text-lg font-semibold">ProductPilot</h2>

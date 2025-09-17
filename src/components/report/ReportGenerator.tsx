@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react';
 import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { generateReportAction } from '@/app/actions'
@@ -41,32 +42,66 @@ function LoadingSkeleton() {
     )
 }
 
-export function ReportGenerator() {
+interface ReportGeneratorProps {
+    productIdea: string;
+    customerPainPoints: string;
+    marketTrends: string;
+}
+
+export function ReportGenerator({ productIdea, customerPainPoints, marketTrends }: ReportGeneratorProps) {
   const [state, formAction] = useActionState(generateReportAction, initialState)
   const { pending } = useFormStatus();
+  
+  const formRef = React.useRef<HTMLFormElement>(null);
+
+  React.useEffect(() => {
+    // Automatically submit the form when the component mounts with the pre-filled data.
+    // This gives a seamless experience where the report generates automatically after the user selects a product idea.
+    if (productIdea && customerPainPoints && marketTrends) {
+        formRef.current?.requestSubmit();
+    }
+  }, [productIdea, customerPainPoints, marketTrends]);
+
+
+  if (pending) {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className='font-headline'>Generating Report...</CardTitle>
+                <CardDescription>The AI is analyzing the data and compiling the report for <strong>{productIdea}</strong>.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <LoadingSkeleton />
+            </CardContent>
+        </Card>
+    )
+  }
+
+  if (state?.report) {
+    return <ReportDisplay report={state.report} />
+  }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-3">
-        <Card className="lg:col-span-1">
+        <Card>
             <CardHeader>
-                <CardTitle className='font-headline'>Report Inputs</CardTitle>
+                <CardTitle className='font-headline'>Generate Business Report</CardTitle>
                 <CardDescription>
-                    Provide the necessary details to generate a product viability report.
+                    Confirm the details below to generate a full business report for your selected product idea.
                 </CardDescription>
             </CardHeader>
-             <form action={formAction}>
+             <form action={formAction} ref={formRef}>
                 <CardContent className="space-y-4">
                      <div className="space-y-2">
                         <Label htmlFor="productIdea">Product Idea</Label>
-                        <Input id="productIdea" name="productIdea" placeholder="e.g., Smart Coffee Mug" />
+                        <Input id="productIdea" name="productIdea" defaultValue={productIdea} />
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="customerPainPoints">Customer Pain Points</Label>
-                        <Textarea id="customerPainPoints" name="customerPainPoints" placeholder="Summarize pain points from sentiment analysis..." rows={5}/>
+                        <Textarea id="customerPainPoints" name="customerPainPoints" defaultValue={customerPainPoints} rows={5}/>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="marketTrends">Market Trends</Label>
-                        <Textarea id="marketTrends" name="marketTrends" placeholder="Summarize insights from trend identification..." rows={5}/>
+                        <Textarea id="marketTrends" name="marketTrends" defaultValue={marketTrends} rows={5}/>
                     </div>
                      {state?.error && (
                         <Alert variant="destructive">
@@ -80,33 +115,5 @@ export function ReportGenerator() {
                 </CardFooter>
             </form>
         </Card>
-
-        <div className="lg:col-span-2">
-            {pending && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className='font-headline'>Generating Report...</CardTitle>
-                        <CardDescription>The AI is analyzing the data and compiling the report.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <LoadingSkeleton />
-                    </CardContent>
-                </Card>
-            )}
-            {!pending && state?.report && (
-                <ReportDisplay report={state.report} />
-            )}
-             {!pending && !state?.report && (
-                 <Card className="flex h-full flex-col items-center justify-center p-8 text-center">
-                    <CardHeader>
-                        <CardTitle className="font-headline">Your Report Awaits</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-muted-foreground">Fill out the form on the left and click "Generate Report" to see the AI-powered business analysis.</p>
-                    </CardContent>
-                </Card>
-             )}
-        </div>
-    </div>
   )
 }

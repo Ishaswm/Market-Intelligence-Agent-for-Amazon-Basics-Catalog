@@ -4,6 +4,7 @@ import { analyzeCustomerSentiment } from "@/ai/flows/analyze-customer-sentiment"
 import { generateBusinessReport } from "@/ai/flows/generate-business-report";
 import type { GenerateBusinessReportOutput } from "@/ai/flows/generate-business-report";
 import { suggestTrendingProducts } from "@/ai/flows/suggest-trending-products";
+import { recommendProducts } from "@/ai/flows/recommend-products";
 import { z } from "zod";
 
 interface SuggestTrendsState {
@@ -90,5 +91,47 @@ export async function generateReportAction(
     } catch (error) {
         console.error(error);
         return { error: "Failed to generate report. Please try again." };
+    }
+}
+
+
+interface RecommendProductsState {
+    productSuggestions?: { name: string; description: string }[];
+    error?: string;
+    // We need to pass these through to the next step
+    customerPainPoints?: string;
+    marketTrends?: string;
+}
+
+const recommendSchema = z.object({
+    customerPainPoints: z.string().min(10, 'Please summarize customer pain points.'),
+    marketTrends: z.string().min(10, 'Please summarize market trends.'),
+});
+
+export async function recommendProductsAction(
+    prevState: RecommendProductsState,
+    formData: FormData
+): Promise<RecommendProductsState> {
+    const validatedFields = recommendSchema.safeParse({
+        customerPainPoints: formData.get('customerPainPoints'),
+        marketTrends: formData.get('marketTrends'),
+    });
+
+    if (!validatedFields.success) {
+        return {
+            error: validatedFields.error.errors.map((e) => e.message).join(', '),
+        };
+    }
+
+    try {
+        const result = await recommendProducts(validatedFields.data);
+        return { 
+            productSuggestions: result.productSuggestions,
+            customerPainPoints: validatedFields.data.customerPainPoints,
+            marketTrends: validatedFields.data.marketTrends,
+         };
+    } catch (error) {
+        console.error(error);
+        return { error: "Failed to recommend products. Please try again." };
     }
 }
