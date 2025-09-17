@@ -1,3 +1,40 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "smart-water-bottle",
+      "description": "A smart water bottle that tracks intake and glows to remind you to drink.",
+      "imageUrl": "https://picsum.photos/seed/101/600/400",
+      "imageHint": "smart bottle"
+    },
+    {
+      "id": "ergonomic-desk-chair",
+      "description": "An ergonomic desk chair with lumbar support and adjustable armrests.",
+      "imageUrl": "https://picsum.photos/seed/102/600/400",
+      "imageHint": "desk chair"
+    },
+    {
+      "id": "portable-blender",
+      "description": "A compact, USB-rechargeable blender for smoothies on the go.",
+      "imageUrl": "https://picsum.photos/seed/103/600/400",
+      "imageHint": "portable blender"
+    },
+    {
+      "id": "wireless-charging-pad",
+      "description": "A sleek, fast-charging wireless pad for smartphones and other devices.",
+      "imageUrl": "https://picsum.photos/seed/104/600/400",
+      "imageHint": "charging pad"
+    },
+    {
+      "id": "noise-cancelling-headphones",
+      "description": "Over-ear noise-cancelling headphones with high-fidelity audio.",
+      "imageUrl": "https://picsum.photos/seed/105/600/400",
+      "imageHint": "headphones"
+    },
+    {
+      "id": "yoga-mat",
+      "description": "A non-slip, eco-friendly yoga mat for all types of practice.",
+      "imageUrl": "https://picsum.photos/seed/106/600/400",
+      "imageHint": "yoga mat"
+    }
+  ]
 }
