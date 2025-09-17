@@ -77,7 +77,7 @@ export async function findProductOpportunitiesAction(
     }
 }
 
-interface SummarizeMarketState extends SummarizeMarketDataOutput {
+interface SummarizeMarketState extends FindProductOpportunitiesOutput, SummarizeMarketDataOutput {
     error?: string;
 }
 
@@ -93,9 +93,12 @@ export async function summarizeMarketAction(
             error: validatedFields.error.errors.map((e) => e.message).join(', '),
             marketTrends: '',
             customerPainPoints: '',
+            analysisSummary: '',
+            productSuggestions: [],
         };
     }
     try {
+        // Run both AI flows in parallel to speed up the process
         const [opportunities, marketSummary] = await Promise.all([
             findProductOpportunities(validatedFields.data),
             summarizeMarketData(validatedFields.data),
@@ -112,6 +115,8 @@ export async function summarizeMarketAction(
             error: "Failed to analyze market data. Please try again.",
             marketTrends: '',
             customerPainPoints: '',
+            analysisSummary: '',
+            productSuggestions: [],
         };
     }
 }

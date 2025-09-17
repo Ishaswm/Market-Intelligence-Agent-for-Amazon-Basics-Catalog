@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
 import { summarizeMarketAction } from '@/app/actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,18 +26,17 @@ function OpportunityFinder({ onOpportunitiesFound, onLoading }: { onOpportunitie
         marketTrends: '',
         customerPainPoints: '',
     };
-    const [state, formAction] = useActionState(summarizeMarketAction, initialState);
-    const { pending } = useFormStatus();
+    const [state, formAction, isPending] = useActionState(summarizeMarketAction, initialState);
 
     React.useEffect(() => {
-        onLoading(pending);
-    }, [pending, onLoading]);
+        onLoading(isPending);
+    }, [isPending, onLoading]);
     
     React.useEffect(() => {
-        if (state?.productSuggestions && state.productSuggestions.length > 0) {
+        if (state?.productSuggestions && state.productSuggestions.length > 0 && !isPending) {
             onOpportunitiesFound(state as InitialState);
         }
-    }, [state, onOpportunitiesFound]);
+    }, [state, onOpportunitiesFound, isPending]);
     
     return (
         <Card>
@@ -59,7 +57,7 @@ function OpportunityFinder({ onOpportunitiesFound, onLoading }: { onOpportunitie
                             required
                         />
                     </div>
-                    {state?.error && !pending && (
+                    {state?.error && !isPending && (
                         <Alert variant="destructive">
                             <AlertTitle>Error</AlertTitle>
                             <AlertDescription>{state.error}</AlertDescription>
@@ -67,8 +65,8 @@ function OpportunityFinder({ onOpportunitiesFound, onLoading }: { onOpportunitie
                     )}
                 </CardContent>
                 <CardFooter>
-                     <Button type="submit" disabled={pending}>
-                        {pending ? 'Analyzing...' : <> <Search className="mr-2" /> Find Opportunities</>}
+                     <Button type="submit" disabled={isPending}>
+                        {isPending ? 'Analyzing...' : <> <Search className="mr-2" /> Find Opportunities</>}
                     </Button>
                 </CardFooter>
             </form>
@@ -231,7 +229,7 @@ export function ProductResearch() {
                 break;
         }
         
-        handleReset();
+        // Default to step 1 if something goes wrong
         return <OpportunityFinder onOpportunitiesFound={handleOpportunitiesFound} onLoading={setIsLoadingOpportunities} />;
     };
 
