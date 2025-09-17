@@ -1,21 +1,14 @@
 import { Header } from "@/components/common/Header";
-import { OpportunityCard } from "@/components/dashboard/OpportunityCard";
-import { opportunities } from "@/lib/data";
+import { ReportGenerator } from "@/components/report/ReportGenerator";
 
-export default function OpportunitiesPage() {
-    const sortedOpportunities = [...opportunities].sort((a,b) => b.score - a.score);
-
+export default function ReportsPage() {
     return (
         <>
             <Header
-                title="Opportunity Scorecards"
-                description="Browse potential product launch opportunities based on their market viability."
+                title="Product Viability Report"
+                description="Generate a comprehensive business report for a potential new product."
             />
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {sortedOpportunities.map(opp => (
-                    <OpportunityCard key={opp.id} opportunity={opp} />
-                ))}
-            </div>
+            <ReportGenerator />
         </>
     )
 }

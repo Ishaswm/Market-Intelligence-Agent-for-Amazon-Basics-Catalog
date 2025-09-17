@@ -2,61 +2,7 @@ import type { Opportunity } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 export const opportunities: Opportunity[] = [
-  {
-    id: '1',
-    name: 'Smart Water Bottle',
-    category: 'Home Goods',
-    tam: 500,
-    margin: 60,
-    easeOfEntry: 75,
-    score: 85,
-    imageUrl: PlaceHolderImages.find(p => p.id === 'smart-water-bottle')?.imageUrl ?? '',
-    imageHint: PlaceHolderImages.find(p => p.id === 'smart-water-bottle')?.imageHint ?? '',
-  },
-  {
-    id: '2',
-    name: 'Ergonomic Desk Chair',
-    category: 'Office Furniture',
-    tam: 1200,
-    margin: 45,
-    easeOfEntry: 60,
-    score: 78,
-    imageUrl: PlaceHolderImages.find(p => p.id === 'ergonomic-desk-chair')?.imageUrl ?? '',
-    imageHint: PlaceHolderImages.find(p => p.id === 'ergonomic-desk-chair')?.imageHint ?? '',
-  },
-  {
-    id: '3',
-    name: 'Portable Blender',
-    category: 'Kitchen Appliances',
-    tam: 300,
-    margin: 55,
-    easeOfEntry: 80,
-    score: 72,
-    imageUrl: PlaceHolderImages.find(p => p.id === 'portable-blender')?.imageUrl ?? '',
-    imageHint: PlaceHolderImages.find(p => p.id === 'portable-blender')?.imageHint ?? '',
-  },
-  {
-    id: '4',
-    name: 'Wireless Charging Pad',
-    category: 'Electronics',
-    tam: 800,
-    margin: 50,
-    easeOfEntry: 70,
-    score: 91,
-    imageUrl: PlaceHolderImages.find(p => p.id === 'wireless-charging-pad')?.imageUrl ?? '',
-    imageHint: PlaceHolderImages.find(p => p.id === 'wireless-charging-pad')?.imageHint ?? '',
-  },
-    {
-    id: '5',
-    name: 'Noise-Cancelling Headphones',
-    category: 'Electronics',
-    tam: 1500,
-    margin: 65,
-    easeOfEntry: 50,
-    score: 88,
-    imageUrl: PlaceHolderImages.find(p => p.id === 'noise-cancelling-headphones')?.imageUrl ?? '',
-    imageHint: PlaceHolderImages.find(p => p.id === 'noise-cancelling-headphones')?.imageHint ?? '',
-    },
+ 
 ];
 
 export const marketTrendData = [

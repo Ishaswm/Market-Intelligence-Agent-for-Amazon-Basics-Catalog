@@ -5,8 +5,7 @@ import {
   LayoutDashboard,
   TrendingUp,
   MessageSquareText,
-  Rocket,
-  Warehouse,
+  FileText,
 } from 'lucide-react'
 import Link from 'next/link'
 import {
@@ -20,7 +19,7 @@ const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/dashboard/trends', icon: TrendingUp, label: 'Trend Identification' },
   { href: '/dashboard/sentiment', icon: MessageSquareText, label: 'Sentiment Analysis' },
-  { href: '/dashboard/opportunities', icon: Rocket, label: 'Opportunities' },
+  { href: '/dashboard/opportunities', icon: FileText, label: 'Reports' },
 ]
 
 export function DashboardNav(props: ComponentProps<typeof SidebarMenu>) {
