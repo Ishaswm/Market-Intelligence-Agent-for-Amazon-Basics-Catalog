@@ -15,15 +15,6 @@ import { ReportGenerator } from '../report/ReportGenerator';
 
 const initialRecommendState = {};
 
-function RecommendSubmitButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending}>
-            {pending ? 'Generating Ideas...' : 'Generate Product Ideas'}
-        </Button>
-    );
-}
-
 function LoadingSkeleton() {
     return (
         <div className="space-y-4">
@@ -47,7 +38,15 @@ function RecommendationForm({ onRecommendations, customerPainPoints, marketTrend
     marketTrends: string
 }) {
     const [state, formAction] = useActionState(recommendProductsAction, initialRecommendState);
-    const { pending } = useFormStatus();
+    
+    function SubmitButton() {
+        const { pending } = useFormStatus();
+        return (
+            <Button type="submit" disabled={pending}>
+                {pending ? 'Generating Ideas...' : 'Generate Product Ideas'}
+            </Button>
+        );
+    }
 
     React.useEffect(() => {
         if (state?.productSuggestions) {
@@ -85,7 +84,6 @@ function RecommendationForm({ onRecommendations, customerPainPoints, marketTrend
                             defaultValue={marketTrends}
                         />
                     </div>
-                    {pending && <LoadingSkeleton />}
                     {state?.error && (
                         <Alert variant="destructive">
                             <AlertTitle>Error</AlertTitle>
@@ -94,7 +92,7 @@ function RecommendationForm({ onRecommendations, customerPainPoints, marketTrend
                     )}
                 </CardContent>
                 <CardFooter>
-                    <RecommendSubmitButton />
+                    <SubmitButton />
                 </CardFooter>
             </form>
         </Card>
@@ -143,6 +141,8 @@ export function ProductResearch() {
     const [step, setStep] = useState(1);
     const [recommendationData, setRecommendationData] = useState<any>(null);
     const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+    const { pending } = useFormStatus();
+
 
     const handleRecommendations = (data: any) => {
         setRecommendationData(data);
@@ -158,6 +158,22 @@ export function ProductResearch() {
         setStep(1);
         setRecommendationData(null);
         setSelectedProduct(null);
+    }
+
+    if (pending && step === 1) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline">Generating Ideas...</CardTitle>
+                    <CardDescription>
+                        The AI is analyzing your input to generate product recommendations.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <LoadingSkeleton />
+                </CardContent>
+            </Card>
+        )
     }
 
     if (step === 1) {
