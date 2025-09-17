@@ -2,42 +2,22 @@
 
 import React from 'react';
 import { useActionState } from 'react'
-import { useFormStatus } from 'react-dom'
 import { generateReportAction } from '@/app/actions'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ReportDisplay } from './ReportDisplay'
 
 const initialState = {}
 
-function SubmitButton() {
-    const { pending } = useFormStatus()
-    return (
-        <Button type="submit" disabled={pending}>
-            {pending ? 'Generating Report...' : 'Generate Report'}
-        </Button>
-    )
-}
-
 function LoadingSkeleton() {
     return (
         <div className="space-y-6">
-            <Skeleton className="h-10 w-1/4" />
-            <div className="space-y-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-3/4" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-48 w-full" />
             </div>
-             <Skeleton className="h-10 w-1/4" />
-            <div className="space-y-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-5/6" />
-            </div>
+             <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-48 w-full" />
         </div>
     )
 }
@@ -50,24 +30,29 @@ interface ReportGeneratorProps {
 
 export function ReportGenerator({ productIdea, customerPainPoints, marketTrends }: ReportGeneratorProps) {
   const [state, formAction] = useActionState(generateReportAction, initialState)
-  const { pending } = useFormStatus();
   
   const formRef = React.useRef<HTMLFormElement>(null);
+  const hasSubmitted = React.useRef(false);
 
   React.useEffect(() => {
-    // Automatically submit the form when the component mounts with the pre-filled data.
-    // This gives a seamless experience where the report generates automatically after the user selects a product idea.
-    if (productIdea && customerPainPoints && marketTrends) {
-        formRef.current?.requestSubmit();
+    // Automatically submit the form once when the component mounts with the pre-filled data.
+    if (productIdea && customerPainPoints && marketTrends && !hasSubmitted.current) {
+        const formData = new FormData();
+        formData.append('productIdea', productIdea);
+        formData.append('customerPainPoints', customerPainPoints);
+        formData.append('marketTrends', marketTrends);
+        formAction(formData);
+        hasSubmitted.current = true;
     }
-  }, [productIdea, customerPainPoints, marketTrends]);
+  }, [productIdea, customerPainPoints, marketTrends, formAction]);
 
 
-  if (pending) {
+  // Show loading skeleton immediately while waiting for the report
+  if (!state?.report && !state?.error) {
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle className='font-headline'>Generating Report...</CardTitle>
+        <Card className="border-none shadow-none">
+            <CardHeader className='text-center'>
+                <CardTitle className='font-headline text-3xl'>Generating Report...</CardTitle>
                 <CardDescription>The AI is analyzing the data and compiling the report for <strong>{productIdea}</strong>.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -78,42 +63,15 @@ export function ReportGenerator({ productIdea, customerPainPoints, marketTrends 
   }
 
   if (state?.report) {
-    return <ReportDisplay report={state.report} />
+    return <ReportDisplay report={state.report} productName={productIdea} />
   }
-
+  
+  // Render an empty state or an error if something went wrong
   return (
-        <Card>
-            <CardHeader>
-                <CardTitle className='font-headline'>Generate Business Report</CardTitle>
-                <CardDescription>
-                    Confirm the details below to generate a full business report for your selected product idea.
-                </CardDescription>
-            </CardHeader>
-             <form action={formAction} ref={formRef}>
-                <CardContent className="space-y-4">
-                     <div className="space-y-2">
-                        <Label htmlFor="productIdea">Product Idea</Label>
-                        <Input id="productIdea" name="productIdea" defaultValue={productIdea} />
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="customerPainPoints">Customer Pain Points</Label>
-                        <Textarea id="customerPainPoints" name="customerPainPoints" defaultValue={customerPainPoints} rows={5}/>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="marketTrends">Market Trends</Label>
-                        <Textarea id="marketTrends" name="marketTrends" defaultValue={marketTrends} rows={5}/>
-                    </div>
-                     {state?.error && (
-                        <Alert variant="destructive">
-                            <AlertTitle>Error</AlertTitle>
-                            <AlertDescription>{state.error}</AlertDescription>
-                        </Alert>
-                    )}
-                </CardContent>
-                <CardFooter>
-                    <SubmitButton />
-                </CardFooter>
-            </form>
-        </Card>
+        <form ref={formRef} action={formAction} className="hidden">
+             <input type="hidden" name="productIdea" defaultValue={productIdea} />
+            <input type="hidden" name="customerPainPoints" defaultValue={customerPainPoints} />
+            <input type="hidden" name="marketTrends" defaultValue={marketTrends} />
+        </form>
   )
 }

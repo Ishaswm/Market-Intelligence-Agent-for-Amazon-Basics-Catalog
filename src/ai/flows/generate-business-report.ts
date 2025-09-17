@@ -24,11 +24,19 @@ export type GenerateBusinessReportInput = z.infer<
   typeof GenerateBusinessReportInputSchema
 >;
 
+const OpportunityScoringSchema = z.object({
+    timeToMarketInMonths: z.number().describe('The estimated time in months to bring the product to market.'),
+    penetrationPotential: z.enum(["High", "Medium", "Low"]).describe('The potential for market penetration.'),
+    easeOfEntry: z.enum(["High", "Medium", "Low"]).describe('The ease of entering the market.'),
+    scoreOutOfTen: z.number().min(1).max(10).describe('A final opportunity score out of 10, where 10 is the highest potential.'),
+    justification: z.string().describe('A brief justification for the given score.')
+});
+
 const GenerateBusinessReportOutputSchema = z.object({
-  financialModeling: z.string().describe("An analysis of the Total Addressable Market (TAM), estimated cost of production, and potential pricing strategy."),
-  opportunityScoring: z.string().describe("An assessment of the product's potential, including estimated time to market, penetration potential, and ease of market entry. Provide a final score out of 10."),
-  competitiveAnalysis: z.string().describe('An overview of the competitive landscape, identifying key competitors, their strengths, weaknesses, and potential differentiation for an Amazon Basics product.'),
-  marketTrends: z.string().describe('A summary of the market trends that support the viability of this product idea.'),
+  financialModeling: z.string().describe("An analysis of the Total Addressable Market (TAM), estimated cost of production, and potential pricing strategy, presented in bullet points."),
+  opportunityScoring: OpportunityScoringSchema,
+  competitiveAnalysis: z.string().describe('An overview of the competitive landscape, identifying key competitors, their strengths, weaknesses, and potential differentiation for an Amazon Basics product, presented in bullet points.'),
+  marketTrends: z.string().describe('A summary of the market trends that support the viability of this product idea, presented in bullet points.'),
 });
 export type GenerateBusinessReportOutput = z.infer<
   typeof GenerateBusinessReportOutputSchema
@@ -51,9 +59,9 @@ Product Idea: {{{productIdea}}}
 Market Analysis Summary (incorporating customer pain points and market trends):
 {{{marketTrends}}}
 
-Based on the information above, generate a detailed business report covering the following sections:
+Based on the information above, generate a detailed business report covering the following sections. Please use bullet points for text-based sections to ensure clarity and professionalism.
 1.  **Financial Modeling:** Provide a high-level financial projection. Analyze the Total Addressable Market (TAM), estimate the cost of production per unit, and suggest a potential retail pricing strategy to ensure a healthy margin.
-2.  **Opportunity Scoring:** Analyze the product's potential. Estimate the time to enter the market (in months), assess the market penetration potential (High, Medium, Low), and the ease of entry. Provide a final opportunity score out of 10 with a clear justification.
+2.  **Opportunity Scoring:** Analyze the product's potential. Estimate the time to enter the market (in months), assess the market penetration potential (High, Medium, Low), and the ease of entry (High, Medium, Low). Provide a final opportunity score out of 10 with a clear justification.
 3.  **Competitive Analysis:** Summarize the competitive landscape. Identify the main competitors, their strengths and weaknesses, and how an Amazon Basics version of this product could differentiate itself (e.g., on price, features, quality).
 4.  **Market Trends:** Explain how current market trends support this product idea. Use the provided market analysis to highlight key growth drivers and consumer behaviors.
 

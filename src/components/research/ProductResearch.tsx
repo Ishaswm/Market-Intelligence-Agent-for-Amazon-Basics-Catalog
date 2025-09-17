@@ -1,56 +1,32 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { findProductOpportunitiesAction, generateReportAction } from '@/app/actions';
+import { findProductOpportunitiesAction } from '@/app/actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Lightbulb, Search } from 'lucide-react';
+import { Lightbulb, Search, Download } from 'lucide-react';
 import { ReportGenerator } from '../report/ReportGenerator';
 import type { FindProductOpportunitiesOutput } from '@/ai/flows/find-product-opportunities';
+import { Header } from '../common/Header';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
-// Step 1: Form to get opportunities
+
 function OpportunityFinder({ onOpportunitiesFound }: { onOpportunitiesFound: (data: FindProductOpportunitiesOutput) => void }) {
     const [state, formAction] = useActionState(findProductOpportunitiesAction, {});
-    const { pending } = useFormStatus();
-
+    
     React.useEffect(() => {
         if (state?.productSuggestions) {
             onOpportunitiesFound(state as FindProductOpportunitiesOutput);
         }
     }, [state, onOpportunitiesFound]);
-
-    if (pending) {
-        return (
-            <Card>
-                <CardHeader>
-                    <CardTitle className="font-headline">Analyzing Market...</CardTitle>
-                    <CardDescription>
-                        The AI is scouting the market for trends and customer pain points.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-4">
-                        <Skeleton className="h-8 w-1/3" />
-                        <div className="space-y-2">
-                            <Skeleton className="h-4 w-full" />
-                            <Skeleton className="h-4 w-4/5" />
-                        </div>
-                        <div className="space-y-2">
-                            <Skeleton className="h-4 w-full" />
-                            <Skeleton className="h-4 w-3/4" />
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-        )
-    }
-
+    
     return (
         <Card>
             <CardHeader>
@@ -77,16 +53,49 @@ function OpportunityFinder({ onOpportunitiesFound }: { onOpportunitiesFound: (da
                     )}
                 </CardContent>
                 <CardFooter>
-                    <Button type="submit" disabled={pending}>
-                        {pending ? 'Analyzing...' : <> <Search className="mr-2" /> Find Opportunities</>}
-                    </Button>
+                    <SubmitButton />
                 </CardFooter>
             </form>
         </Card>
     );
 }
 
-// Step 2: Display recommendations and allow selection
+function SubmitButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending}>
+            {pending ? 'Analyzing...' : <> <Search className="mr-2" /> Find Opportunities</>}
+        </Button>
+    )
+}
+
+function OpportunityFinderSkeleton() {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="font-headline">Analyzing Market...</CardTitle>
+                <CardDescription>
+                    The AI is scouting the market for trends and customer pain points.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="space-y-4">
+                    <Skeleton className="h-8 w-1/3" />
+                    <div className="space-y-2">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-4/5" />
+                    </div>
+                    <div className="space-y-2">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-3/4" />
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
+
+
 function OpportunityResults({ opportunities, onSelectProduct, onReset }: {
     opportunities: FindProductOpportunitiesOutput,
     onSelectProduct: (productName: string) => void,
@@ -132,6 +141,7 @@ export function ProductResearch() {
     const [step, setStep] = useState(1);
     const [opportunityData, setOpportunityData] = useState<FindProductOpportunitiesOutput | null>(null);
     const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+    const { pending: isLoadingOpportunities } = useFormStatus();
 
     const handleOpportunitiesFound = (data: FindProductOpportunitiesOutput) => {
         setOpportunityData(data);
@@ -148,31 +158,69 @@ export function ProductResearch() {
         setOpportunityData(null);
         setSelectedProduct(null);
     }
+    
+    const downloadReport = async () => {
+        const reportElement = document.getElementById('report-content');
+        if (!reportElement) return;
 
-    if (step === 1) {
-        return <OpportunityFinder onOpportunitiesFound={handleOpportunitiesFound} />;
-    }
+        const canvas = await html2canvas(reportElement, {
+            scale: 2,
+            useCORS: true, 
+            backgroundColor: null,
+        });
 
-    if (step === 2 && opportunityData) {
-        return <OpportunityResults
-            opportunities={opportunityData}
-            onSelectProduct={handleSelectProduct}
-            onReset={handleReset}
-        />;
-    }
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`${selectedProduct?.replace(/\s+/g, '-')}-business-report.pdf`);
+    };
 
-    if (step === 3 && selectedProduct && opportunityData) {
-        return <ReportGenerator
-            productIdea={selectedProduct}
-            customerPainPoints={opportunityData.analysisSummary} // Using combined summary
-            marketTrends={opportunityData.analysisSummary} // Using combined summary
-        />;
-    }
 
-    // Fallback to step 1 if state is inconsistent
-    if (step !== 1) {
+    const renderStep = () => {
+        if (isLoadingOpportunities && step === 1) {
+            return <OpportunityFinderSkeleton />;
+        }
+
+        switch (step) {
+            case 1:
+                return <OpportunityFinder onOpportunitiesFound={handleOpportunitiesFound} />;
+            case 2:
+                if (opportunityData) {
+                    return <OpportunityResults
+                        opportunities={opportunityData}
+                        onSelectProduct={handleSelectProduct}
+                        onReset={handleReset}
+                    />;
+                }
+                break; // Fallback to reset if data is missing
+            case 3:
+                 if (selectedProduct && opportunityData) {
+                    return (
+                        <>
+                             <Header
+                                title="Business Report"
+                                description="Review the AI-generated report and download it as a PDF."
+                                action={{ label: 'Download PDF', onClick: downloadReport }}
+                            />
+                            <ReportGenerator
+                                productIdea={selectedProduct}
+                                customerPainPoints={opportunityData.analysisSummary}
+                                marketTrends={opportunityData.analysisSummary}
+                            />
+                        </>
+                    )
+                }
+                break; // Fallback to reset if data is missing
+        }
+        
+        // Fallback for inconsistent state
         handleReset();
-    }
+        return <OpportunityFinder onOpportunitiesFound={handleOpportunitiesFound} />;
+    };
 
-    return <OpportunityFinder onOpportunitiesFound={handleOpportunitiesFound} />;
+
+    return <>{renderStep()}</>
 }

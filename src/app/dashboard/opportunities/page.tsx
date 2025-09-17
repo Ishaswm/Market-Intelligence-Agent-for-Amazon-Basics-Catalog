@@ -1,7 +1,10 @@
+'use client';
+import { Suspense } from 'react'
+
 import { Header } from "@/components/common/Header";
 import { ProductResearch } from "@/components/research/ProductResearch";
 
-export default function ProductResearchPage() {
+function ProductResearchPageContent() {
     return (
         <>
             <Header
@@ -10,5 +13,13 @@ export default function ProductResearchPage() {
             />
             <ProductResearch />
         </>
+    )
+}
+
+export default function ProductResearchPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <ProductResearchPageContent />
+        </Suspense>
     )
 }
