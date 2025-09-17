@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { findProductOpportunitiesAction } from '@/app/actions';
@@ -138,14 +138,15 @@ function OpportunityResults({ opportunities, onSelectProduct, onReset }: {
 
 
 export function ProductResearch() {
-    const [step, setStep] = useState(1);
-    const [opportunityData, setOpportunityData] = useState<FindProductOpportunitiesOutput | null>(null);
-    const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
-    const { pending: isLoadingOpportunities } = useFormStatus();
+    const [step, setStep] = React.useState(1);
+    const [opportunityData, setOpportunityData] = React.useState<FindProductOpportunitiesOutput | null>(null);
+    const [selectedProduct, setSelectedProduct] = React.useState<string | null>(null);
+    const [isLoadingOpportunities, setIsLoadingOpportunities] = React.useState(false);
 
     const handleOpportunitiesFound = (data: FindProductOpportunitiesOutput) => {
         setOpportunityData(data);
         setStep(2);
+        setIsLoadingOpportunities(false);
     };
 
     const handleSelectProduct = (productName: string) => {
@@ -157,17 +158,25 @@ export function ProductResearch() {
         setStep(1);
         setOpportunityData(null);
         setSelectedProduct(null);
+        setIsLoadingOpportunities(false);
     }
     
     const downloadReport = async () => {
         const reportElement = document.getElementById('report-content');
         if (!reportElement) return;
+        
+        // Temporarily change background for capture
+        const originalBg = document.body.style.backgroundColor;
+        document.body.style.backgroundColor = 'white';
 
         const canvas = await html2canvas(reportElement, {
             scale: 2,
             useCORS: true, 
-            backgroundColor: null,
+            backgroundColor: '#ffffff', // Explicitly set a white background
         });
+        
+        // Restore original background
+        document.body.style.backgroundColor = originalBg;
 
         const imgData = canvas.toDataURL('image/png');
         const pdf = new jsPDF('p', 'mm', 'a4');
@@ -180,6 +189,19 @@ export function ProductResearch() {
 
 
     const renderStep = () => {
+        // This is a workaround to show skeleton on form submission start
+        const handleAction = (payload: FormData) => {
+            setIsLoadingOpportunities(true);
+            findProductOpportunitiesAction({}, payload).then(state => {
+                 if (state?.productSuggestions) {
+                    handleOpportunitiesFound(state as FindProductOpportunitiesOutput);
+                } else {
+                    // Handle error state if needed
+                    setIsLoadingOpportunities(false);
+                }
+            });
+        }
+
         if (isLoadingOpportunities && step === 1) {
             return <OpportunityFinderSkeleton />;
         }

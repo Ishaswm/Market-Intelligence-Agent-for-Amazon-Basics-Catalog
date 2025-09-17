@@ -1,8 +1,7 @@
 import type { GenerateBusinessReportOutput } from "@/ai/flows/generate-business-report";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Target, Zap, TrendingUp, BadgeCheck, Clock, Shield, BarChart } from "lucide-react";
+import { DollarSign, Target, Zap, TrendingUp, Clock, Shield, BarChart } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 
 interface ReportDisplayProps {
     report: GenerateBusinessReportOutput;
@@ -10,26 +9,30 @@ interface ReportDisplayProps {
 }
 
 const ReportSection = ({ title, content, icon: Icon }: { title: string, content: string, icon: React.ElementType }) => (
-    <div className="rounded-lg border bg-card/50 p-6">
-        <div className="flex items-center gap-3 mb-4">
-            <Icon className="h-8 w-8 text-primary" />
-            <h2 className="font-headline text-2xl font-semibold">{title}</h2>
-        </div>
-        <ul className="space-y-2 text-muted-foreground list-disc pl-5">
-            {content.split('\n').map((line, index) => {
-                const cleanedLine = line.replace(/^- /, '').trim();
-                return cleanedLine && <li key={index}>{cleanedLine}</li>
-            })}
-        </ul>
-    </div>
+    <Card className="flex-1">
+        <CardHeader className="flex flex-row items-center gap-3 space-y-0 pb-4">
+            <div className="p-2 bg-primary/10 rounded-md">
+                <Icon className="h-6 w-6 text-primary" />
+            </div>
+            <CardTitle className="font-headline text-xl font-semibold">{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+            <ul className="space-y-2 text-muted-foreground list-disc pl-5">
+                {content.split('\n').map((line, index) => {
+                    const cleanedLine = line.replace(/^- /, '').trim();
+                    return cleanedLine && <li key={index}>{cleanedLine}</li>
+                })}
+            </ul>
+        </CardContent>
+    </Card>
 )
 
 const OpportunityMetric = ({ label, value, icon: Icon }: { label: string; value: string | number; icon: React.ElementType }) => (
-    <div className="flex items-center gap-3">
-        <Icon className="h-6 w-6 text-muted-foreground" />
+    <div className="flex items-center gap-3 rounded-lg border p-4 bg-card">
+        <Icon className="h-8 w-8 text-muted-foreground" />
         <div>
             <p className="text-sm text-muted-foreground">{label}</p>
-            <p className="font-semibold">{value}</p>
+            <p className="text-lg font-bold">{value}</p>
         </div>
     </div>
 )
@@ -37,13 +40,40 @@ const OpportunityMetric = ({ label, value, icon: Icon }: { label: string; value:
 export function ReportDisplay({ report, productName }: ReportDisplayProps) {
     const { opportunityScoring } = report;
     return (
-        <div id="report-content">
-            <Card className="border-none shadow-none">
-                <CardHeader className="text-center">
+        <div id="report-content" className="bg-background p-4 sm:p-8 rounded-lg">
+            <Card className="border-none shadow-none bg-transparent">
+                <CardHeader className="text-center pb-8">
                     <CardTitle className="font-headline text-4xl">Business Viability Report</CardTitle>
                     <CardDescription className="text-lg">An AI-generated analysis for: <span className="font-bold text-primary">{productName}</span></CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8">
+                    
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-primary/10 rounded-md">
+                                    <Target className="h-6 w-6 text-primary" />
+                                </div>
+                                <CardTitle className="font-headline text-xl font-semibold">Opportunity Scoring</CardTitle>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                               <OpportunityMetric label="Time to Market" value={`${opportunityScoring.timeToMarketInMonths} Months`} icon={Clock} />
+                               <OpportunityMetric label="Penetration Potential" value={opportunityScoring.penetrationPotential} icon={BarChart} />
+                               <OpportunityMetric label="Ease of Entry" value={opportunityScoring.easeOfEntry} icon={Shield} />
+                               <div className="flex flex-col items-center justify-center gap-2 rounded-lg border p-4 bg-primary/10 text-primary-foreground">
+                                    <p className="text-sm text-primary/80">Overall Score</p>
+                                    <p className="font-bold text-5xl text-primary">{opportunityScoring.scoreOutOfTen}<span className="text-2xl text-primary/80">/10</span></p>
+                               </div>
+                            </div>
+                             <div className="space-y-2 pt-4">
+                                <Progress value={opportunityScoring.scoreOutOfTen * 10} />
+                                <p className="text-sm text-muted-foreground italic text-center pt-2">{opportunityScoring.justification}</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <ReportSection 
                             title="Financial Modeling"
@@ -55,28 +85,6 @@ export function ReportDisplay({ report, productName }: ReportDisplayProps) {
                             content={report.competitiveAnalysis}
                             icon={Zap}
                         />
-                    </div>
-                    
-                    <div className="rounded-lg border bg-card/50 p-6">
-                        <div className="flex items-center gap-3 mb-4">
-                            <Target className="h-8 w-8 text-primary" />
-                            <h2 className="font-headline text-2xl font-semibold">Opportunity Scoring</h2>
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-                           <OpportunityMetric label="Time to Market" value={`${opportunityScoring.timeToMarketInMonths} Months`} icon={Clock} />
-                           <OpportunityMetric label="Penetration Potential" value={opportunityScoring.penetrationPotential} icon={BarChart} />
-                           <OpportunityMetric label="Ease of Entry" value={opportunityScoring.easeOfEntry} icon={Shield} />
-                           <div className="flex items-center gap-3 col-span-2 md:col-span-1 justify-center bg-muted/50 p-4 rounded-md">
-                                <div>
-                                    <p className="text-sm text-muted-foreground text-center">Overall Score</p>
-                                    <p className="font-bold text-4xl text-center text-primary">{opportunityScoring.scoreOutOfTen}/10</p>
-                                </div>
-                           </div>
-                        </div>
-                         <div className="space-y-2 mb-4">
-                            <Progress value={opportunityScoring.scoreOutOfTen * 10} />
-                            <p className="text-sm text-muted-foreground italic">{opportunityScoring.justification}</p>
-                        </div>
                     </div>
 
                     <ReportSection 
