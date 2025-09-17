@@ -1,12 +1,12 @@
 import { Header } from "@/components/common/Header";
 import { ProductResearch } from "@/components/research/ProductResearch";
 
-export default function ReportsPage() {
+export default function ProductResearchPage() {
     return (
         <>
             <Header
                 title="Product Research"
-                description="Generate product ideas from market data and create a comprehensive business report."
+                description="Generate product ideas from a category and create a comprehensive business report."
             />
             <ProductResearch />
         </>

@@ -1,62 +1,11 @@
 'use server'
 
-import { analyzeCustomerSentiment } from "@/ai/flows/analyze-customer-sentiment";
 import { generateBusinessReport } from "@/ai/flows/generate-business-report";
 import type { GenerateBusinessReportOutput } from "@/ai/flows/generate-business-report";
-import { suggestTrendingProducts } from "@/ai/flows/suggest-trending-products";
-import { recommendProducts } from "@/ai/flows/recommend-products";
+import { findProductOpportunities } from "@/ai/flows/find-product-opportunities";
+import type { FindProductOpportunitiesOutput } from "@/ai/flows/find-product-opportunities";
 import { z } from "zod";
 
-interface SuggestTrendsState {
-  productCategories?: string[];
-  reasoning?: string;
-  error?: string;
-}
-
-export async function suggestTrendsAction(
-  prevState: SuggestTrendsState,
-  formData: FormData
-): Promise<SuggestTrendsState> {
-  try {
-    const result = await suggestTrendingProducts({});
-    return result;
-  } catch (error) {
-    console.error(error);
-    return { error: "Failed to suggest trends. Please try again." };
-  }
-}
-
-interface AnalyzeSentimentState {
-    summary?: string;
-    error?: string;
-}
-
-const sentimentSchema = z.object({
-    reviews: z.string().min(10, 'Please enter at least 10 characters of review text.'),
-});
-
-export async function analyzeSentimentAction(
-    prevState: AnalyzeSentimentState,
-    formData: FormData
-): Promise<AnalyzeSentimentState> {
-    const validatedFields = sentimentSchema.safeParse({
-        reviews: formData.get('reviews'),
-    });
-
-    if (!validatedFields.success) {
-        return {
-            error: validatedFields.error.errors.map((e) => e.message).join(', '),
-        };
-    }
-
-    try {
-        const result = await analyzeCustomerSentiment({ productReviews: validatedFields.data.reviews });
-        return { summary: result.summary };
-    } catch (error) {
-        console.error(error);
-        return { error: "Failed to analyze sentiment. Please try again." };
-    }
-}
 
 interface GenerateReportState {
     report?: GenerateBusinessReportOutput;
@@ -95,26 +44,20 @@ export async function generateReportAction(
 }
 
 
-interface RecommendProductsState {
-    productSuggestions?: { name: string; description: string }[];
+interface FindProductOpportunitiesState extends Partial<FindProductOpportunitiesOutput> {
     error?: string;
-    // We need to pass these through to the next step
-    customerPainPoints?: string;
-    marketTrends?: string;
 }
 
-const recommendSchema = z.object({
-    customerPainPoints: z.string().min(10, 'Please summarize customer pain points.'),
-    marketTrends: z.string().min(10, 'Please summarize market trends.'),
+const findOpportunitiesSchema = z.object({
+    productCategory: z.string().min(3, 'Please enter a product category with at least 3 characters.'),
 });
 
-export async function recommendProductsAction(
-    prevState: RecommendProductsState,
+export async function findProductOpportunitiesAction(
+    prevState: FindProductOpportunitiesState,
     formData: FormData
-): Promise<RecommendProductsState> {
-    const validatedFields = recommendSchema.safeParse({
-        customerPainPoints: formData.get('customerPainPoints'),
-        marketTrends: formData.get('marketTrends'),
+): Promise<FindProductOpportunitiesState> {
+    const validatedFields = findOpportunitiesSchema.safeParse({
+        productCategory: formData.get('productCategory'),
     });
 
     if (!validatedFields.success) {
@@ -124,14 +67,10 @@ export async function recommendProductsAction(
     }
 
     try {
-        const result = await recommendProducts(validatedFields.data);
-        return { 
-            productSuggestions: result.productSuggestions,
-            customerPainPoints: validatedFields.data.customerPainPoints,
-            marketTrends: validatedFields.data.marketTrends,
-         };
+        const result = await findProductOpportunities(validatedFields.data);
+        return result;
     } catch (error) {
         console.error(error);
-        return { error: "Failed to recommend products. Please try again." };
+        return { error: "Failed to find product opportunities. Please try again." };
     }
 }

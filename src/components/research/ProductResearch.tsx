@@ -3,85 +3,70 @@
 import React, { useState } from 'react';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { recommendProductsAction } from '@/app/actions';
+import { findProductOpportunitiesAction, generateReportAction } from '@/app/actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Lightbulb } from 'lucide-react';
+import { Lightbulb, Search } from 'lucide-react';
 import { ReportGenerator } from '../report/ReportGenerator';
+import type { FindProductOpportunitiesOutput } from '@/ai/flows/find-product-opportunities';
 
-const initialRecommendState = {};
-
-function LoadingSkeleton() {
-    return (
-        <div className="space-y-4">
-            <Skeleton className="h-8 w-1/3" />
-            <div className="space-y-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-4/5" />
-            </div>
-            <div className="space-y-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-3/4" />
-            </div>
-        </div>
-    );
-}
-
-// Step 1: Form to get recommendations
-function RecommendationForm({ onRecommendations, customerPainPoints, marketTrends }: { 
-    onRecommendations: (data: any) => void,
-    customerPainPoints: string,
-    marketTrends: string
-}) {
-    const [state, formAction] = useActionState(recommendProductsAction, initialRecommendState);
-    
-    function SubmitButton() {
-        const { pending } = useFormStatus();
-        return (
-            <Button type="submit" disabled={pending}>
-                {pending ? 'Generating Ideas...' : 'Generate Product Ideas'}
-            </Button>
-        );
-    }
+// Step 1: Form to get opportunities
+function OpportunityFinder({ onOpportunitiesFound }: { onOpportunitiesFound: (data: FindProductOpportunitiesOutput) => void }) {
+    const [state, formAction] = useActionState(findProductOpportunitiesAction, {});
+    const { pending } = useFormStatus();
 
     React.useEffect(() => {
         if (state?.productSuggestions) {
-            onRecommendations(state);
+            onOpportunitiesFound(state as FindProductOpportunitiesOutput);
         }
-    }, [state, onRecommendations]);
+    }, [state, onOpportunitiesFound]);
+
+    if (pending) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline">Analyzing Market...</CardTitle>
+                    <CardDescription>
+                        The AI is scouting the market for trends and customer pain points.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
+                        <Skeleton className="h-8 w-1/3" />
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-4/5" />
+                        </div>
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-3/4" />
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        )
+    }
 
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline">Step 1: Analyze Market & Ideate</CardTitle>
+                <CardTitle className="font-headline">Step 1: Explore a Product Category</CardTitle>
                 <CardDescription>
-                    Provide summaries of customer pain points and market trends to generate tailored product recommendations.
+                    Enter a product category to analyze market trends and customer sentiment, and get new product ideas.
                 </CardDescription>
             </CardHeader>
             <form action={formAction}>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="customerPainPoints">Customer Pain Points Summary</Label>
-                        <Textarea
-                            id="customerPainPoints"
-                            name="customerPainPoints"
-                            placeholder="e.g., 'Users complain about coffee mugs not keeping drinks hot long enough and being difficult to clean.'"
-                            rows={5}
-                            defaultValue={customerPainPoints}
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="marketTrends">Market Trends Summary</Label>
-                        <Textarea
-                            id="marketTrends"
-                            name="marketTrends"
-                            placeholder="e.g., 'The market for smart home devices is growing, with a focus on convenience and app integration.'"
-                            rows={5}
-                            defaultValue={marketTrends}
+                        <Label htmlFor="productCategory">Product Category</Label>
+                        <Input
+                            id="productCategory"
+                            name="productCategory"
+                            placeholder="e.g., 'kitchen gadgets', 'home office accessories'"
                         />
                     </div>
                     {state?.error && (
@@ -92,7 +77,9 @@ function RecommendationForm({ onRecommendations, customerPainPoints, marketTrend
                     )}
                 </CardContent>
                 <CardFooter>
-                    <SubmitButton />
+                    <Button type="submit" disabled={pending}>
+                        {pending ? 'Analyzing...' : <> <Search className="mr-2" /> Find Opportunities</>}
+                    </Button>
                 </CardFooter>
             </form>
         </Card>
@@ -100,21 +87,25 @@ function RecommendationForm({ onRecommendations, customerPainPoints, marketTrend
 }
 
 // Step 2: Display recommendations and allow selection
-function RecommendationResults({ recommendations, onSelectProduct, onReset }: { 
-    recommendations: { name: string; description: string }[],
-    onSelectProduct: (name: string) => void,
+function OpportunityResults({ opportunities, onSelectProduct, onReset }: {
+    opportunities: FindProductOpportunitiesOutput,
+    onSelectProduct: (productName: string) => void,
     onReset: () => void,
- }) {
+}) {
     return (
         <Card>
             <CardHeader>
                 <CardTitle className="font-headline">Step 2: Choose a Product to Develop</CardTitle>
                 <CardDescription>
-                    Based on your input, here are a few product ideas. Select one to generate a detailed business report.
+                    Here are some AI-generated product ideas based on market analysis. Select one to generate a detailed business report.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                {recommendations.map((product, index) => (
+                 <div className="rounded-md border bg-muted/50 p-4">
+                    <h3 className="font-semibold mb-2">AI Market Analysis Summary</h3>
+                    <p className="text-sm text-muted-foreground">{opportunities.analysisSummary}</p>
+                 </div>
+                {opportunities.productSuggestions.map((product, index) => (
                     <div key={index} className="flex items-start gap-4 rounded-md border p-4">
                         <div className="flex-shrink-0">
                             <Lightbulb className="h-6 w-6 text-accent" />
@@ -129,7 +120,7 @@ function RecommendationResults({ recommendations, onSelectProduct, onReset }: {
                     </div>
                 ))}
             </CardContent>
-             <CardFooter className='flex justify-end'>
+            <CardFooter className='flex justify-end'>
                 <Button variant="outline" onClick={onReset}>Start Over</Button>
             </CardFooter>
         </Card>
@@ -139,13 +130,11 @@ function RecommendationResults({ recommendations, onSelectProduct, onReset }: {
 
 export function ProductResearch() {
     const [step, setStep] = useState(1);
-    const [recommendationData, setRecommendationData] = useState<any>(null);
+    const [opportunityData, setOpportunityData] = useState<FindProductOpportunitiesOutput | null>(null);
     const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
-    const { pending } = useFormStatus();
 
-
-    const handleRecommendations = (data: any) => {
-        setRecommendationData(data);
+    const handleOpportunitiesFound = (data: FindProductOpportunitiesOutput) => {
+        setOpportunityData(data);
         setStep(2);
     };
 
@@ -153,61 +142,37 @@ export function ProductResearch() {
         setSelectedProduct(productName);
         setStep(3);
     };
-    
+
     const handleReset = () => {
         setStep(1);
-        setRecommendationData(null);
+        setOpportunityData(null);
         setSelectedProduct(null);
     }
 
-    if (pending && step === 1) {
-        return (
-            <Card>
-                <CardHeader>
-                    <CardTitle className="font-headline">Generating Ideas...</CardTitle>
-                    <CardDescription>
-                        The AI is analyzing your input to generate product recommendations.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <LoadingSkeleton />
-                </CardContent>
-            </Card>
-        )
-    }
-
     if (step === 1) {
-        return <RecommendationForm 
-            onRecommendations={handleRecommendations} 
-            customerPainPoints={recommendationData?.customerPainPoints || ''}
-            marketTrends={recommendationData?.marketTrends || ''}
-        />;
+        return <OpportunityFinder onOpportunitiesFound={handleOpportunitiesFound} />;
     }
 
-    if (step === 2 && recommendationData?.productSuggestions) {
-        return <RecommendationResults 
-            recommendations={recommendationData.productSuggestions} 
+    if (step === 2 && opportunityData) {
+        return <OpportunityResults
+            opportunities={opportunityData}
             onSelectProduct={handleSelectProduct}
             onReset={handleReset}
         />;
     }
 
-    if (step === 3 && selectedProduct && recommendationData) {
-        return <ReportGenerator 
-            productIdea={selectedProduct} 
-            customerPainPoints={recommendationData.customerPainPoints} 
-            marketTrends={recommendationData.marketTrends} 
+    if (step === 3 && selectedProduct && opportunityData) {
+        return <ReportGenerator
+            productIdea={selectedProduct}
+            customerPainPoints={opportunityData.analysisSummary} // Using combined summary
+            marketTrends={opportunityData.analysisSummary} // Using combined summary
         />;
     }
-    
+
     // Fallback to step 1 if state is inconsistent
     if (step !== 1) {
         handleReset();
     }
 
-    return <RecommendationForm 
-        onRecommendations={handleRecommendations} 
-        customerPainPoints={recommendationData?.customerPainPoints || ''}
-        marketTrends={recommendationData?.marketTrends || ''}
-    />;
+    return <OpportunityFinder onOpportunitiesFound={handleOpportunitiesFound} />;
 }
