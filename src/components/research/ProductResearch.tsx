@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Lightbulb, Search, Download } from 'lucide-react';
+import { Lightbulb, Search } from 'lucide-react';
 import { ReportGenerator } from '../report/ReportGenerator';
 import type { FindProductOpportunitiesOutput } from '@/ai/flows/find-product-opportunities';
 import { Header } from '../common/Header';
@@ -18,8 +18,13 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 
-function OpportunityFinder({ onOpportunitiesFound }: { onOpportunitiesFound: (data: FindProductOpportunitiesOutput) => void }) {
+function OpportunityFinder({ onOpportunitiesFound, onLoading }: { onOpportunitiesFound: (data: FindProductOpportunitiesOutput) => void, onLoading: (loading: boolean) => void }) {
     const [state, formAction] = useActionState(findProductOpportunitiesAction, {});
+    const { pending } = useFormStatus();
+
+    React.useEffect(() => {
+        onLoading(pending);
+    }, [pending, onLoading]);
     
     React.useEffect(() => {
         if (state?.productSuggestions) {
@@ -43,9 +48,10 @@ function OpportunityFinder({ onOpportunitiesFound }: { onOpportunitiesFound: (da
                             id="productCategory"
                             name="productCategory"
                             placeholder="e.g., 'kitchen gadgets', 'home office accessories'"
+                            required
                         />
                     </div>
-                    {state?.error && (
+                    {state?.error && !pending && (
                         <Alert variant="destructive">
                             <AlertTitle>Error</AlertTitle>
                             <AlertDescription>{state.error}</AlertDescription>
@@ -53,21 +59,15 @@ function OpportunityFinder({ onOpportunitiesFound }: { onOpportunitiesFound: (da
                     )}
                 </CardContent>
                 <CardFooter>
-                    <SubmitButton />
+                     <Button type="submit" disabled={pending}>
+                        {pending ? 'Analyzing...' : <> <Search className="mr-2" /> Find Opportunities</>}
+                    </Button>
                 </CardFooter>
             </form>
         </Card>
     );
 }
 
-function SubmitButton() {
-    const { pending } = useFormStatus();
-    return (
-        <Button type="submit" disabled={pending}>
-            {pending ? 'Analyzing...' : <> <Search className="mr-2" /> Find Opportunities</>}
-        </Button>
-    )
-}
 
 function OpportunityFinderSkeleton() {
     return (
@@ -165,17 +165,15 @@ export function ProductResearch() {
         const reportElement = document.getElementById('report-content');
         if (!reportElement) return;
         
-        // Temporarily change background for capture
         const originalBg = document.body.style.backgroundColor;
         document.body.style.backgroundColor = 'white';
 
         const canvas = await html2canvas(reportElement, {
             scale: 2,
             useCORS: true, 
-            backgroundColor: '#ffffff', // Explicitly set a white background
+            backgroundColor: '#ffffff',
         });
         
-        // Restore original background
         document.body.style.backgroundColor = originalBg;
 
         const imgData = canvas.toDataURL('image/png');
@@ -189,26 +187,13 @@ export function ProductResearch() {
 
 
     const renderStep = () => {
-        // This is a workaround to show skeleton on form submission start
-        const handleAction = (payload: FormData) => {
-            setIsLoadingOpportunities(true);
-            findProductOpportunitiesAction({}, payload).then(state => {
-                 if (state?.productSuggestions) {
-                    handleOpportunitiesFound(state as FindProductOpportunitiesOutput);
-                } else {
-                    // Handle error state if needed
-                    setIsLoadingOpportunities(false);
-                }
-            });
-        }
-
-        if (isLoadingOpportunities && step === 1) {
+        if (isLoadingOpportunities) {
             return <OpportunityFinderSkeleton />;
         }
 
         switch (step) {
             case 1:
-                return <OpportunityFinder onOpportunitiesFound={handleOpportunitiesFound} />;
+                return <OpportunityFinder onOpportunitiesFound={handleOpportunitiesFound} onLoading={setIsLoadingOpportunities} />;
             case 2:
                 if (opportunityData) {
                     return <OpportunityResults
@@ -217,7 +202,7 @@ export function ProductResearch() {
                         onReset={handleReset}
                     />;
                 }
-                break; // Fallback to reset if data is missing
+                break;
             case 3:
                  if (selectedProduct && opportunityData) {
                     return (
@@ -235,12 +220,11 @@ export function ProductResearch() {
                         </>
                     )
                 }
-                break; // Fallback to reset if data is missing
+                break;
         }
         
-        // Fallback for inconsistent state
         handleReset();
-        return <OpportunityFinder onOpportunitiesFound={handleOpportunitiesFound} />;
+        return <OpportunityFinder onOpportunitiesFound={handleOpportunitiesFound} onLoading={setIsLoadingOpportunities} />;
     };
 
 

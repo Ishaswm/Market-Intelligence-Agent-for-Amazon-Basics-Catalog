@@ -45,6 +45,7 @@ const prompt = ai.definePrompt({
   name: 'findProductOpportunitiesPrompt',
   input: {schema: FindProductOpportunitiesInputSchema},
   output: {schema: FindProductOpportunitiesOutputSchema},
+  model: 'googleai/gemini-1.5-flash',
   prompt: `You are a senior product strategist for Amazon Basics. Your goal is to identify high-potential new product opportunities within a given category by analyzing market trends and common customer pain points.
 
 Your task is to analyze the product category: '{{{productCategory}}}'.
