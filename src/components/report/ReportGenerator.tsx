@@ -29,26 +29,31 @@ interface ReportGeneratorProps {
 }
 
 export function ReportGenerator({ productIdea, customerPainPoints, marketTrends }: ReportGeneratorProps) {
-  const [state, formAction] = useActionState(generateReportAction, initialState)
+  const [state, formAction, isPending] = useActionState(generateReportAction, initialState)
   
   const formRef = React.useRef<HTMLFormElement>(null);
-  const hasSubmitted = React.useRef(false);
 
   React.useEffect(() => {
     // Automatically submit the form once when the component mounts with the pre-filled data.
-    if (productIdea && customerPainPoints && marketTrends && !hasSubmitted.current) {
-        const formData = new FormData();
-        formData.append('productIdea', productIdea);
-        formData.append('customerPainPoints', customerPainPoints);
-        formData.append('marketTrends', marketTrends);
-        formAction(formData);
-        hasSubmitted.current = true;
+    if (productIdea && customerPainPoints && marketTrends && formRef.current) {
+        // We use requestSubmit to trigger the form submission programmatically
+        // which correctly handles the action state.
+        const formData = new FormData(formRef.current);
+        // Ensure the latest props are on the FormData before submitting
+        formData.set('productIdea', productIdea);
+        formData.set('customerPainPoints', customerPainPoints);
+        formData.set('marketTrends', marketTrends);
+        
+        // This check prevents re-submission if the component re-renders
+        if (!state.report && !isPending) {
+             formRef.current.requestSubmit();
+        }
     }
-  }, [productIdea, customerPainPoints, marketTrends, formAction]);
+  }, [productIdea, customerPainPoints, marketTrends, state.report, isPending]);
 
 
   // Show loading skeleton immediately while waiting for the report
-  if (!state?.report && !state?.error) {
+  if (isPending || (!state?.report && !state?.error)) {
     return (
         <Card className="border-none shadow-none">
             <CardHeader className='text-center'>
@@ -66,7 +71,7 @@ export function ReportGenerator({ productIdea, customerPainPoints, marketTrends 
     return <ReportDisplay report={state.report} productName={productIdea} />
   }
   
-  // Render an empty state or an error if something went wrong
+  // Render the hidden form to be used for submission
   return (
         <form ref={formRef} action={formAction} className="hidden">
              <input type="hidden" name="productIdea" defaultValue={productIdea} />
