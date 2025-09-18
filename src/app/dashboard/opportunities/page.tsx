@@ -2,7 +2,7 @@
 import { Suspense } from 'react'
 
 import { Header } from "@/components/common/Header";
-import { ProductResearch } from "@/components/research/ProductResearch";
+import { SimpleMarketAnalysis } from "@/components/research/SimpleMarketAnalysis";
 
 function ProductResearchPageContent() {
     return (
@@ -11,7 +11,7 @@ function ProductResearchPageContent() {
                 title="Product Research"
                 description="Generate product ideas from a category and create a comprehensive business report."
             />
-            <ProductResearch />
+            <SimpleMarketAnalysis />
         </>
     )
 }

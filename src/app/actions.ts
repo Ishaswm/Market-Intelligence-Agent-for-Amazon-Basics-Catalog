@@ -6,6 +6,8 @@ import { findProductOpportunities } from "@/ai/flows/find-product-opportunities"
 import type { FindProductOpportunitiesOutput } from "@/ai/flows/find-product-opportunities";
 import { summarizeMarketData } from "@/ai/flows/summarize-market-data";
 import type { SummarizeMarketDataOutput } from "@/ai/flows/summarize-market-data";
+import { generateMarketAnalysis } from "@/lib/gemini-direct";
+import type { MarketAnalysisReport } from "@/lib/types";
 import { z } from "zod";
 
 
@@ -116,5 +118,18 @@ export async function summarizeMarketAction(
             analysisSummary: '',
             productSuggestions: [],
         };
+    }
+}
+
+// Simple market analysis action using direct Gemini API
+export async function simpleMarketAnalysisAction(category: string): Promise<MarketAnalysisReport> {
+    try {
+        console.log('Generating market analysis for category:', category);
+        const result = await generateMarketAnalysis(category);
+        console.log('Market analysis generated successfully');
+        return result;
+    } catch (error) {
+        console.error('Market analysis failed:', error);
+        throw new Error('Failed to generate market analysis: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
 }
