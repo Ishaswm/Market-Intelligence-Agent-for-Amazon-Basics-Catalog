@@ -38,22 +38,17 @@ interface ReportGeneratorProps {
 
 export function ReportGenerator({ productIdea, customerPainPoints, marketTrends }: ReportGeneratorProps) {
   const [state, formAction, isPending] = useActionState(generateReportAction, initialState)
+  const formRef = React.useRef<HTMLFormElement>(null);
   
   React.useEffect(() => {
-    // Automatically trigger the action when the component mounts with the required props.
-    // This replaces the need for a hidden form and programmatic submission.
+    // Automatically trigger the form submission when the component mounts with the required props.
     if (productIdea && customerPainPoints && marketTrends) {
-      const formData = new FormData();
-      formData.append('productIdea', productIdea);
-      formData.append('customerPainPoints', customerPainPoints);
-      formData.append('marketTrends', marketTrends);
-      
-      // Only trigger the action if it hasn't already been started or completed.
-      if (!state.report && !isPending && !state.error) {
-          formAction(formData);
-      }
+        // Only trigger the action if it hasn't already been started or completed.
+        if (!state.report && !isPending && !state.error) {
+           formRef.current?.requestSubmit();
+        }
     }
-  }, [productIdea, customerPainPoints, marketTrends, formAction, state.report, isPending, state.error]);
+  }, [productIdea, customerPainPoints, marketTrends, state.report, isPending, state.error]);
 
 
   // Show loading skeleton while the report is being generated
@@ -65,6 +60,11 @@ export function ReportGenerator({ productIdea, customerPainPoints, marketTrends 
                 <CardDescription>The AI is analyzing the data and compiling the report for <strong>{productIdea}</strong>. This may take a moment.</CardDescription>
             </CardHeader>
             <CardContent>
+                 <form ref={formRef} action={formAction} className="hidden">
+                    <input type="hidden" name="productIdea" value={productIdea} />
+                    <input type="hidden" name="customerPainPoints" value={customerPainPoints} />
+                    <input type="hidden" name="marketTrends" value={marketTrends} />
+                </form>
                 <LoadingSkeleton />
             </CardContent>
         </Card>
