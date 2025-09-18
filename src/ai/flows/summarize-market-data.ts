@@ -1,7 +1,7 @@
 'use server';
 
 /**
- * @fileOverview This flow analyzes a product category to summarize market trends and customer pain points.
+ * @fileOverview This flow analyzes a product category to summarize market trends and customer pain points for potential Amazon Basics products.
  *
  * - summarizeMarketData - Analyzes a category and returns distinct summaries.
  * - SummarizeMarketDataInput - The input type for the summarizeMarketData function.
@@ -41,7 +41,7 @@ const prompt = ai.definePrompt({
   input: {schema: SummarizeMarketDataInputSchema},
   output: {schema: SummarizeMarketDataOutputSchema},
   model: 'googleai/gemini-1.5-flash',
-  prompt: `You are a senior market analyst for Amazon Basics. Your goal is to analyze a given product category to extract key market trends and common customer pain points.
+  prompt: `You are a senior market analyst for Amazon Basics. Your goal is to analyze a given product category to extract key market trends and common customer pain points to inform new product decisions for the Amazon Basics catalog.
 
 Your task is to analyze the product category: '{{{productCategory}}}'.
 

@@ -5,6 +5,7 @@ import { BarChart3, DollarSign, Package } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowRight } from 'lucide-react'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 
 export default function DashboardPage() {
   return (
@@ -13,6 +14,25 @@ export default function DashboardPage() {
         title="Dashboard"
         description="Your starting point for product discovery and analysis."
       />
+      
+       <Card className="mb-8">
+            <CardHeader>
+                <CardTitle className="font-headline text-2xl font-semibold leading-none tracking-tight">Start New Product Research</CardTitle>
+                <CardDescription className="text-sm text-muted-foreground">
+                    This tool is a market intelligence engine designed to identify new product opportunities for the Amazon Basics catalog. 
+                    It analyzes market trends and customer pain points to suggest high-potential products and generates detailed business viability reports.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Link href="/dashboard/opportunities">
+                    <Button>
+                        Go to Product Research
+                        <ArrowRight className="ml-2" />
+                    </Button>
+                </Link>
+            </CardContent>
+        </Card>
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <KpiCard
           title="Total Addressable Market"
@@ -35,20 +55,6 @@ export default function DashboardPage() {
       </div>
       <div className="mt-8 grid grid-cols-1 gap-8">
         <MarketTrendChart />
-         <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-            <div className="flex flex-col space-y-1.5 p-6">
-                <h3 className="font-headline text-2xl font-semibold leading-none tracking-tight">Start New Product Research</h3>
-                <p className="text-sm text-muted-foreground">Combine sentiment and trend analysis to generate product ideas and create a full business case.</p>
-            </div>
-            <div className="p-6 pt-0">
-                <Link href="/dashboard/opportunities">
-                    <Button>
-                        Go to Product Research
-                        <ArrowRight className="ml-2" />
-                    </Button>
-                </Link>
-            </div>
-        </div>
       </div>
     </>
   )

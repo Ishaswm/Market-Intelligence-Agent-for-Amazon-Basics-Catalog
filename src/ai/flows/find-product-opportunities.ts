@@ -3,7 +3,7 @@
 /**
  * @fileOverview This flow analyzes a product category to suggest new product opportunities for Amazon Basics.
  *
- * - findProductOpportunities - Analyzes a category and suggests products.
+ * - findProductOpportunities - Analyzes a category and suggests products for the Amazon Basics catalog.
  * - FindProductOpportunitiesInput - The input type for the findProductOpportunities function.
  * - FindProductOpportunitiesOutput - The return type for the findProductOpportunities function.
  */
@@ -28,7 +28,7 @@ const ProductSuggestionSchema = z.object({
 
 const FindProductOpportunitiesOutputSchema = z.object({
   analysisSummary: z.string().describe("A concise summary of the key market trends and customer pain points identified in the category."),
-  productSuggestions: z.array(ProductSuggestionSchema).describe('A list of new product recommendations based on the analysis.'),
+  productSuggestions: z.array(ProductSuggestionSchema).describe('A list of new product recommendations for the Amazon Basics catalog based on the analysis.'),
 });
 
 export type FindProductOpportunitiesOutput = z.infer<
@@ -46,14 +46,14 @@ const prompt = ai.definePrompt({
   input: {schema: FindProductOpportunitiesInputSchema},
   output: {schema: FindProductOpportunitiesOutputSchema},
   model: 'googleai/gemini-1.5-flash',
-  prompt: `You are a senior product strategist for Amazon Basics. Your goal is to identify high-potential new product opportunities within a given category by analyzing market trends and common customer pain points.
+  prompt: `You are a senior product strategist for Amazon Basics. Your goal is to identify high-potential new product opportunities within a given category by analyzing market trends and common customer pain points, specifically for the Amazon Basics product catalog.
 
 Your task is to analyze the product category: '{{{productCategory}}}'.
 
 1.  **Analyze the Market**: Based on your knowledge, identify the top 2-3 market trends and the most common customer pain points for products in this category. Synthesize this into a brief "Analysis Summary".
-2.  **Suggest Products**: Based on your analysis, suggest three innovative yet practical products that Amazon Basics could launch. For each suggestion, provide a product name and a description that explains how it addresses the identified pain points and aligns with market trends.
+2.  **Suggest Products for Amazon Basics**: Based on your analysis, suggest three innovative yet practical products that would be a perfect fit for the Amazon Basics brand. For each suggestion, provide a product name and a description that explains how it addresses the identified pain points and aligns with market trends.
 
-The products should be a good fit for the Amazon Basics brand, meaning they should target the mass market, be cost-effective to produce, and solve common problems.`,
+The products must be a good fit for the Amazon Basics brand, meaning they should target the mass market, be cost-effective to produce, solve common problems, and have a high potential for positive customer reviews.`,
 });
 
 const findProductOpportunitiesFlow = ai.defineFlow(
