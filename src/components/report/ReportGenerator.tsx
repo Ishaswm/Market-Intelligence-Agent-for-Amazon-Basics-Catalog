@@ -32,23 +32,22 @@ function LoadingSkeleton() {
 
 interface ReportGeneratorProps {
     productIdea: string;
-    customerPainPoints: string;
-    marketTrends: string;
+    marketAnalysisSummary: string;
 }
 
-export function ReportGenerator({ productIdea, customerPainPoints, marketTrends }: ReportGeneratorProps) {
+export function ReportGenerator({ productIdea, marketAnalysisSummary }: ReportGeneratorProps) {
   const [state, formAction, isPending] = useActionState(generateReportAction, initialState)
   const formRef = React.useRef<HTMLFormElement>(null);
   
   React.useEffect(() => {
     // Automatically trigger the form submission when the component mounts with the required props.
-    if (productIdea && customerPainPoints && marketTrends) {
+    if (productIdea && marketAnalysisSummary) {
         // Only trigger the action if it hasn't already been started or completed.
         if (!state.report && !isPending && !state.error) {
            formRef.current?.requestSubmit();
         }
     }
-  }, [productIdea, customerPainPoints, marketTrends, state.report, isPending, state.error]);
+  }, [productIdea, marketAnalysisSummary, state.report, isPending, state.error]);
 
 
   // Show loading skeleton while the report is being generated
@@ -62,8 +61,7 @@ export function ReportGenerator({ productIdea, customerPainPoints, marketTrends 
             <CardContent>
                  <form ref={formRef} action={formAction} className="hidden">
                     <input type="hidden" name="productIdea" value={productIdea} />
-                    <input type="hidden" name="customerPainPoints" value={customerPainPoints} />
-                    <input type="hidden" name="marketTrends" value={marketTrends} />
+                    <input type="hidden" name="marketAnalysisSummary" value={marketAnalysisSummary} />
                 </form>
                 <LoadingSkeleton />
             </CardContent>

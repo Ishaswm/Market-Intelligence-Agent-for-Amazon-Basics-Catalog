@@ -13,12 +13,9 @@ import {z} from 'genkit';
 
 const GenerateBusinessReportInputSchema = z.object({
   productIdea: z.string().describe('The name of the potential product for the Amazon Basics catalog.'),
-  customerPainPoints: z
+  marketAnalysisSummary: z
     .string()
-    .describe('A summary of customer pain points from reviews.'),
-  marketTrends: z
-    .string()
-    .describe('A summary of relevant market trends.'),
+    .describe('A summary of market trends and customer pain points.'),
 });
 export type GenerateBusinessReportInput = z.infer<
   typeof GenerateBusinessReportInputSchema
@@ -58,7 +55,7 @@ const prompt = ai.definePrompt({
 Product Idea: {{{productIdea}}}
 
 Market Analysis Summary (incorporating customer pain points and market trends):
-{{{marketTrends}}}
+{{{marketAnalysisSummary}}}
 
 Based on the information above, generate a detailed business report covering the following sections. Please use bullet points for text-based sections to ensure clarity and professionalism.
 1.  **Financial Modeling:** Provide a high-level financial projection. Analyze the Total Addressable Market (TAM), estimate the cost of production per unit, and suggest a potential retail pricing strategy to ensure a healthy margin for an Amazon Basics product.

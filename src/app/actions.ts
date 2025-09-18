@@ -16,8 +16,7 @@ interface GenerateReportState {
 
 const reportSchema = z.object({
     productIdea: z.string().min(3, 'Please enter a product idea.'),
-    customerPainPoints: z.string().min(10, 'Please enter customer pain points.'),
-    marketTrends: z.string().min(10, 'Please enter market trends.'),
+    marketAnalysisSummary: z.string().min(10, 'Please enter a market analysis summary.'),
 });
 
 export async function generateReportAction(
@@ -26,8 +25,7 @@ export async function generateReportAction(
 ): Promise<GenerateReportState> {
     const validatedFields = reportSchema.safeParse({
         productIdea: formData.get('productIdea'),
-        customerPainPoints: formData.get('customerPainPoints'),
-        marketTrends: formData.get('marketTrends'),
+        marketAnalysisSummary: formData.get('marketAnalysisSummary'),
     });
 
     if (!validatedFields.success) {

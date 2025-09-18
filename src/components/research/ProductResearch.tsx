@@ -31,7 +31,7 @@ function OpportunityFinder({ onAnalysisComplete }: { onAnalysisComplete: (data: 
     const [state, formAction, isPending] = useActionState(summarizeMarketAction, initialState);
 
     React.useEffect(() => {
-        if (!isPending && (state.productSuggestions?.length > 0 || state.error)) {
+        if (!isPending) {
             onAnalysisComplete(state);
         }
     }, [state, isPending, onAnalysisComplete]);
@@ -153,9 +153,9 @@ export function ProductResearch() {
 
     const handleAnalysisComplete = (data: ResearchState) => {
         setIsLoading(false);
-        if (data.error) {
+        if (data.error || !data.productSuggestions || data.productSuggestions.length === 0) {
             // Error is handled by the OpportunityFinder component's alert
-            return;
+             if (data.error) return; // Don't proceed if there's an error
         }
         setResearchData(data);
         setStep(2);
@@ -208,10 +208,12 @@ export function ProductResearch() {
             case 1:
                 return <OpportunityFinder onAnalysisComplete={(data) => {
                     setIsLoading(true);
+                    // This function is now called inside useEffect of the finder
+                    // so we just process the result here.
                     handleAnalysisComplete(data);
                 }} />;
             case 2:
-                if (researchData) {
+                if (researchData && researchData.productSuggestions && researchData.productSuggestions.length > 0) {
                     return <OpportunityResults
                         opportunities={researchData}
                         onSelectProduct={handleSelectProduct}
@@ -219,8 +221,11 @@ export function ProductResearch() {
                     />;
                 }
                 // If we are in step 2 but have no data, go back to step 1
-                setStep(1);
-                return <OpportunityFinder onAnalysisComplete={handleAnalysisComplete} />;
+                // This can happen if the AI fails and the user wants to try again
+                 return <OpportunityFinder onAnalysisComplete={(data) => {
+                    setIsLoading(true);
+                    handleAnalysisComplete(data);
+                }} />;
 
             case 3:
                  if (selectedProduct && researchData) {
@@ -233,8 +238,7 @@ export function ProductResearch() {
                             />
                             <ReportGenerator
                                 productIdea={selectedProduct}
-                                customerPainPoints={researchData.customerPainPoints}
-                                marketTrends={researchData.marketTrends}
+                                marketAnalysisSummary={researchData.analysisSummary}
                             />
                              <div className="mt-8 text-center">
                                 <Button variant="outline" onClick={handleReset}>Start a New Search</Button>

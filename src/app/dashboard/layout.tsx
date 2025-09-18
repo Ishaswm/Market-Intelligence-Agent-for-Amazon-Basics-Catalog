@@ -27,7 +27,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-3">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <AmazonLogo />
                 <h2 className="font-headline text-lg font-semibold text-sidebar-foreground">ProductPilot</h2>
               </div>
               <p className="text-xs text-muted-foreground mt-1">Market Intelligence Engine to scout new avenues for Amazon Basics Products</p>
