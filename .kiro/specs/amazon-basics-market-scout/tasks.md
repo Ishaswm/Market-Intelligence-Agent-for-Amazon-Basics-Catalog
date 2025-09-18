@@ -34,7 +34,8 @@
   - Include charts and professional formatting
   - _Requirements: 3.3, 3.4, 3.5_
 
-- [-] 6. Deploy to production
+- [ ] 6. Deploy to production
+
 
 
   - Set up environment variables
